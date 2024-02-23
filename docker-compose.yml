@@ -35,7 +35,7 @@ services:
     networks:
       - kafka_network
     volumes:
-      - "Kafka00:/bitnami/kafka"
+      - 'Kafka00:/bitnami/kafka'
 ##Kafka 01
   Kafka01Service:
     image: bitnami/kafka:3.5.1-debian-11-r44
@@ -61,7 +61,7 @@ services:
     networks:
       - kafka_network
     volumes:
-      - "Kafka01:/bitnami/kafka"
+      - 'Kafka01:/bitnami/kafka'
 ##Kafka 02
   Kafka02Service:
     image: bitnami/kafka:3.5.1-debian-11-r44
@@ -87,7 +87,7 @@ services:
     networks:
       - kafka_network
     volumes:
-      - "Kafka02:/bitnami/kafka"
+      - 'Kafka02:/bitnami/kafka'
       
 # Kafka UI 관리자 (localhost:8080)
   KafkaWebUiService:

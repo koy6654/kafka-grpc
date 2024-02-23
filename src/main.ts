@@ -10,10 +10,11 @@ async function bootstrap() {
       transport: Transport.KAFKA,
       options: {
         client: {
-          brokers: ['localhost:9092', 'localhost:9093'],
+          clientId: 'koy-brokers-0',
+          brokers: ['localhost:10000', 'localhost:10001', 'localhost:10002'],
         },
         consumer: {
-          groupId: 'mung-group-0',
+          groupId: 'koy-consumer-group-0',
         },
       },
     },
