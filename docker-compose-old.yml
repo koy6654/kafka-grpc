@@ -1,0 +1,30 @@
+# For kafka
+version: '2' # docker-compose 버전을 명시
+services: # docker 컨테이너에서 실행될 서비스들을 명시
+  zookeeper: # zookeeper
+    image: confluentinc/cp-zookeeper:latest # Confluent 배포 버전 사용
+    container_name: zookeeper
+    environment: # 환경 변수 설정
+      ZOOKEEPER_SERVER_ID: 1 # zookeeper 식별자
+      ZOOKEEPER_CLIENT_PORT: 2181 # 컨테이너 내부 포트
+      ZOOKEEPER_TICK_TIME: 2000 # 클러스터 구성시 동기화 주기 (ms)
+      ZOOKEEPER_INIT_LIMIT: 5 # zookeeper 타임아웃 제한 회수
+      ZOOKEEPER_SYNC_LIMIT: 2 # zookeeper 싱크 제한 횟수
+    ports:
+      - "22181:2181" # 외부 포트 : 내부 포트
+
+  kafka:
+    image: confluentinc/cp-kafka:latest # Confluent 배포 버전 사용
+    container_name: kafka
+    depends_on:
+      - zookeeper # 서비스 실행 우선순위 설정 (zookeeper -> kafka)
+    ports:
+      - "29092:29092" # 외부 포트 : 내부 포트
+    environment: # 환경 변수 설정
+      KAFKA_BROKER_ID: 1 # kafka broker 식별자
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181' # zookeeper 연결
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092 # 외부 포트 설정
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT # 보안을 위한 프로토콜 매핑
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT # 보안을 위한 프로토콜 매핑
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # 브로커의 토픽 복제 개수
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # 카프카 클러스터 초기 리밸런싱 시조인 대기시간 (ms)

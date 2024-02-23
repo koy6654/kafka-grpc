@@ -1,30 +1,111 @@
-# For kafka
-version: '2' # docker-compose 버전을 명시
-services: # docker 컨테이너에서 실행될 서비스들을 명시
-  zookeeper: # zookeeper
-    image: confluentinc/cp-zookeeper:latest # Confluent 배포 버전 사용
-    container_name: zookeeper
-    environment: # 환경 변수 설정
-      ZOOKEEPER_SERVER_ID: 1 # zookeeper 식별자
-      ZOOKEEPER_CLIENT_PORT: 2181 # 컨테이너 내부 포트
-      ZOOKEEPER_TICK_TIME: 2000 # 클러스터 구성시 동기화 주기 (ms)
-      ZOOKEEPER_INIT_LIMIT: 5 # zookeeper 타임아웃 제한 회수
-      ZOOKEEPER_SYNC_LIMIT: 2 # zookeeper 싱크 제한 횟수
-    ports:
-      - "22181:2181" # 외부 포트 : 내부 포트
+networks:
+  kafka_network:
 
-  kafka:
-    image: confluentinc/cp-kafka:latest # Confluent 배포 버전 사용
-    container_name: kafka
-    depends_on:
-      - zookeeper # 서비스 실행 우선순위 설정 (zookeeper -> kafka)
+volumes:
+  Kafka00:
+    driver: local
+  Kafka01:
+    driver: local
+  Kafka02:
+    driver: local
+    
+services:
+##Kafka 00
+  Kafka00Service:
+    image: bitnami/kafka:3.5.1-debian-11-r44
+    restart: unless-stopped
+    container_name: Kafka00Container
     ports:
-      - "29092:29092" # 외부 포트 : 내부 포트
-    environment: # 환경 변수 설정
-      KAFKA_BROKER_ID: 1 # kafka broker 식별자
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181' # zookeeper 연결
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092 # 외부 포트 설정
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT # 보안을 위한 프로토콜 매핑
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT # 보안을 위한 프로토콜 매핑
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # 브로커의 토픽 복제 개수
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # 카프카 클러스터 초기 리밸런싱 시조인 대기시간 (ms)
+      - '10000:9094'
+    environment:     
+      - KAFKA_CFG_BROKER_ID=0
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093,2@Kafka02Service:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://Kafka00Service:9092,EXTERNAL://127.0.0.1:10000
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - kafka_network
+    volumes:
+      - "Kafka00:/bitnami/kafka"
+##Kafka 01
+  Kafka01Service:
+    image: bitnami/kafka:3.5.1-debian-11-r44
+    restart: always
+    container_name: Kafka01Container
+    ports:
+      - '10001:9094'
+    environment:
+      - KAFKA_CFG_BROKER_ID=1
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093,2@Kafka02Service:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://Kafka01Service:9092,EXTERNAL://127.0.0.1:10001
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - kafka_network
+    volumes:
+      - "Kafka01:/bitnami/kafka"
+##Kafka 02
+  Kafka02Service:
+    image: bitnami/kafka:3.5.1-debian-11-r44
+    restart: always
+    container_name: Kafka02Container
+    ports:
+      - '10002:9094'
+    environment:
+      - KAFKA_CFG_BROKER_ID=2
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_KRAFT_CLUSTER_ID=HsDBs9l6UUmQq7Y5E6bNlw
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@Kafka00Service:9093,1@Kafka01Service:9093,2@Kafka02Service:9093
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://Kafka02Service:9092,EXTERNAL://127.0.0.1:10002
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    networks:
+      - kafka_network
+    volumes:
+      - "Kafka02:/bitnami/kafka"
+      
+# Kafka UI 관리자 (localhost:8080)
+  KafkaWebUiService:
+    image: provectuslabs/kafka-ui:latest
+    restart: always
+    container_name: KafkaWebUiContainer
+    ports:
+      - '8080:8080'
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=Local-Kraft-Cluster
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=Kafka00Service:9092,Kafka01Service:9092,Kafka02Service:9092
+      - DYNAMIC_CONFIG_ENABLED=true
+      - KAFKA_CLUSTERS_0_AUDIT_TOPICAUDITENABLED=true
+      - KAFKA_CLUSTERS_0_AUDIT_CONSOLEAUDITENABLED=true
+      #- KAFKA_CLUSTERS_0_METRICS_PORT=9999
+    depends_on:
+      - Kafka00Service
+      - Kafka01Service
+      - Kafka02Service
+    networks:
+      - kafka_network
