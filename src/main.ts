@@ -1,27 +1,17 @@
 import { NestFactory } from '@nestjs/core';
+import { KafkaOptions, MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { ProducerModule } from './producer/producer.module';
 import { AppModule } from './app.module';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { KAFKA_OPTION } from './app.constants';
 
 async function bootstrap() {
-  // 마이크로서비스 추가
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
-    AppModule,
-    {
-      transport: Transport.KAFKA,
-      options: {
-        client: {
-          clientId: 'koy-brokers-0',
-          brokers: ['localhost:10000', 'localhost:10001', 'localhost:10002'],
-        },
-        consumer: {
-          groupId: 'koy-consumer-group-0',
-        },
-      },
-    },
-  );
+    const app = await NestFactory.create(AppModule);
+    app.connectMicroservice(KAFKA_OPTION);
+    await app.listen(5000);
 
-  // 마이크로서비스 실행
-  await app.listen();
+    // 오직 Kafka producer, consumer 기능만을 위할 경우
+    // const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, KAFKA_OPTION);
+    // await app.listen();
 }
 
 bootstrap();
