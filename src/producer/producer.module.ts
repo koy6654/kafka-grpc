@@ -8,6 +8,11 @@ import { ConsumerModule } from 'src/consumer/consumer.module';
 @Module({
     imports: [ClientsModule.register([CLIENT_MODULE_OPTION])],
     controllers: [ProducerController],
-    providers: [ProducerService],
+    providers: [
+        {
+            provide: 'PRODUCER_SERVICE',
+            useClass: ProducerService,
+        },
+    ],
 })
 export class ProducerModule {}

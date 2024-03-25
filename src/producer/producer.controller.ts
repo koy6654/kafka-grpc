@@ -1,27 +1,41 @@
-import { Body, Controller, Inject, Post, Res } from '@nestjs/common';
-import { ProducerSendMailDto } from './producer.dto';
+import { Controller, Inject, Logger, Post, Res } from '@nestjs/common';
+import { Kafka, Producer } from 'kafkajs';
+import { sleep } from '../utils';
 import { ProducerService } from './producer.service';
-import { ClientKafka } from '@nestjs/microservices';
 import { Response } from 'express';
 
-@Controller('producer')
+@Controller('/producer')
 export class ProducerController {
+    private readonly kafka: Kafka;
+    private readonly producer: Producer;
+    private readonly logger: Logger;
+
     constructor(
+        @Inject('PRODUCER_SERVICE')
         private readonly producerService: ProducerService,
-        @Inject('KAFKA') private readonly clientKafka: ClientKafka,
     ) {}
 
-    @Post('/send-mail')
-    producerSendMail(@Body() body: ProducerSendMailDto, @Res() res: Response): boolean {
-        // TODO: Controller로 값 받는 것을 가정한다. -> GRPC로 변경 필요
-        const testPattern = 'sendMail';
-        const testBody = {
-            userId: '3012f371-d2ee-5ba7-82da-49d47ee2d18e',
-            value: 'Test value',
-        };
-        this.clientKafka.emit(testPattern, testBody);
+    @Post('send')
+    async send(@Res() res: Response) {
+        const topic = 'test';
+        const message = { value: 'Hello world with kafka' };
+        await this.producerService.send(topic, message);
 
         res.json({ data: true });
         return;
+    }
+
+    async connect() {
+        try {
+            await this.producer.connect();
+        } catch (err) {
+            this.logger.error('Failed to connect to Kafka.', err);
+            await sleep(5000);
+            await this.connect();
+        }
+    }
+
+    async disconnect() {
+        await this.producer.disconnect();
     }
 }
