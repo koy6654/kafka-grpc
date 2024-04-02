@@ -18,8 +18,9 @@ export class ProducerService implements OnApplicationShutdown {
 
         this.logger = new Logger();
     }
-    onApplicationShutdown(signal?: string) {
-        throw new Error('Method not implemented.');
+
+    async onApplicationShutdown() {
+        await this.producer.disconnect();
     }
 
     public async connect() {

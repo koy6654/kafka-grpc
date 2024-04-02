@@ -17,7 +17,7 @@ export class ProducerController {
 
     @Post('send')
     async send(@Res() res: Response) {
-        const topic = 'test';
+        const topic = process.env.TOPIC;
         const message = { value: 'Hello world with kafka' };
         await this.producerService.send(topic, message);
 
