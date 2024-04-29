@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConsumerProcess } from './consumer.process';
+import { ConsumerRun } from './consumer.run';
 import { ConsumerService } from './consumer.service';
 
 @Module({
-    providers: [ConsumerService, ConsumerProcess],
+    providers: [ConsumerService, ConsumerRun],
 })
 export class ConsumerModule {}

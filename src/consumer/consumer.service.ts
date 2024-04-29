@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { KafkaContext } from '@nestjs/microservices';
 import { Consumer, ConsumerSubscribeTopics, Kafka, KafkaMessage } from 'kafkajs';
-import { retry } from 'async-retry';
 import { sleep } from '../utils';
 
 @Injectable()
@@ -26,20 +25,15 @@ export class ConsumerService implements OnApplicationShutdown {
         await this.consumer.disconnect();
     }
 
-    async consume(topics: ConsumerSubscribeTopics, onMessage: (message: KafkaMessage) => Promise<void>) {
+    async consume(topics: ConsumerSubscribeTopics) {
+        await this.consumer.connect();
         await this.consumer.subscribe(topics);
         await this.consumer.run({
             eachMessage: async ({ message, partition }) => {
-                this.logger.debug(`Processing message partition: ${partition}`);
-                try {
-                    await retry(async () => onMessage(message), {
-                        retries: 3,
-                        onRetry: (error, attempt) =>
-                            this.logger.error(`ConsumerService consume error, executing retry ${attempt}/3...`, error),
-                    });
-                } catch (err) {
-                    this.logger.error('ConsumerService consume error', err);
-                }
+                this.logger.debug(`================= Processing message =================`);
+                this.logger.debug(message.value.toString());
+                this.logger.debug(`================= Processing partition =================`);
+                this.logger.debug(partition);
             },
         });
     }
