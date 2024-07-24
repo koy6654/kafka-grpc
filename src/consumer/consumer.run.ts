@@ -1,5 +1,6 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConsumerService } from './consumer.service';
+import { KAFKA_TOPIC } from '../common/constants';
 
 @Injectable()
 export class ConsumerRun implements OnModuleInit {
@@ -9,6 +10,6 @@ export class ConsumerRun implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.consumerService.consume({ topics: [process.env.TOPIC] });
+        await this.consumerService.consume({ topics: [KAFKA_TOPIC] });
     }
 }

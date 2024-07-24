@@ -1,10 +1,11 @@
-import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { KafkaContext } from '@nestjs/microservices';
-import { Consumer, ConsumerSubscribeTopics, Kafka, KafkaMessage } from 'kafkajs';
-import { sleep } from '../utils';
+import { Consumer, ConsumerSubscribeTopics, Kafka } from 'kafkajs';
+import { sleep } from '../common/utils';
+import { KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_GROUP } from '../common/constants';
 
 @Injectable()
-export class ConsumerService implements OnApplicationShutdown {
+export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly kafka: Kafka;
 
     private readonly consumer: Consumer;
@@ -13,16 +14,13 @@ export class ConsumerService implements OnApplicationShutdown {
 
     constructor() {
         this.kafka = new Kafka({
+            clientId: KAFKA_CONSUMER_CLIENT_ID,
             brokers: [process.env.BROKER_1, process.env.BROKER_2, process.env.BROKER_3],
         });
 
-        this.consumer = this.kafka.consumer({ groupId: process.env.CONSUMER_GROUP_ID });
+        this.consumer = this.kafka.consumer({ groupId: KAFKA_CONSUMER_GROUP });
 
         this.logger = new Logger();
-    }
-
-    async onApplicationShutdown() {
-        await this.consumer.disconnect();
     }
 
     async consume(topics: ConsumerSubscribeTopics) {
@@ -42,13 +40,15 @@ export class ConsumerService implements OnApplicationShutdown {
         try {
             await this.consumer.connect();
         } catch (err) {
-            this.logger.error('Failed to connect to Kafka.', err);
+            this.logger.error('Kafka consumer connected');
+            this.logger.error(err);
+
             await sleep(5000);
             await this.connect();
         }
     }
 
-    async processMail(payload: any, conext: KafkaContext): Promise<boolean> {
+    async processMessage(payload: any, conext: KafkaContext): Promise<boolean> {
         // setTimeout(() => 2 * 1000);
 
         console.log('sendMail start');
@@ -57,5 +57,13 @@ export class ConsumerService implements OnApplicationShutdown {
         console.log(originalMessage);
 
         return true;
+    }
+
+    async onModuleInit() {
+        return await this.connect();
+    }
+
+    async onModuleDestroy() {
+        await this.consumer.disconnect();
     }
 }

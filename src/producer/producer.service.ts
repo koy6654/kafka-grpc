@@ -1,8 +1,11 @@
-import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Message, Producer } from 'kafkajs';
+import { KAFKA_PRODUCER_CLIENT_ID } from '../common/constants';
+import { sleep } from '../common/utils';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class ProducerService implements OnApplicationShutdown {
+export class ProducerService implements OnModuleInit, OnModuleDestroy {
     private readonly kafka: Kafka;
 
     private readonly producer: Producer;
@@ -11,6 +14,7 @@ export class ProducerService implements OnApplicationShutdown {
 
     constructor() {
         this.kafka = new Kafka({
+            clientId: KAFKA_PRODUCER_CLIENT_ID,
             brokers: [process.env.BROKER_1, process.env.BROKER_2, process.env.BROKER_3],
         });
 
@@ -19,38 +23,48 @@ export class ProducerService implements OnApplicationShutdown {
         this.logger = new Logger();
     }
 
-    async onApplicationShutdown() {
-        await this.producer.disconnect();
-    }
-
     public async connect() {
         try {
             await this.producer.connect();
-            this.logger.log('Producer connect');
+            this.logger.log('Kafka producer connected');
         } catch (err) {
-            this.logger.error('Producer connect err');
+            this.logger.error('Kafka producer connect error');
             this.logger.error(err);
-        }
-    }
 
-    public async send(topic: string, message: Message) {
-        try {
+            await sleep(5 * 1000);
             await this.connect();
-            await this.producer.send({ topic, messages: [message] });
-            this.logger.log('Producer send');
-        } catch (err) {
-            this.logger.error('Producer send error');
-            this.logger.error(err);
         }
     }
 
     public async disconnect() {
         try {
             await this.producer.disconnect();
-            this.logger.log('Producer disconnect');
+            this.logger.log('Kafka producer disconnected');
         } catch (err) {
-            this.logger.error('Producer disconnect error');
+            this.logger.error('Kafka producer disconnect error');
             this.logger.error(err);
+
+            throw new err();
         }
+    }
+
+    public async sendMessage(topic: string, message: Message) {
+        try {
+            await this.producer.send({ topic, messages: [message] });
+            this.logger.log(`Kafka producer send success`);
+        } catch (err) {
+            this.logger.error('Kafka producer send error');
+            this.logger.error(err);
+
+            throw new err();
+        }
+    }
+
+    async onModuleInit() {
+        return await this.connect();
+    }
+
+    async onModuleDestroy() {
+        return await this.producer.disconnect();
     }
 }
