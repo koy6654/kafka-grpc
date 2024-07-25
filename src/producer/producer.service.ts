@@ -51,7 +51,7 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
     public async sendMessage(topic: string, message: Message) {
         try {
             await this.producer.send({ topic, messages: [message] });
-            this.logger.log(`Kafka producer send success`);
+            this.logger.log(`Kafka producer send success,  topic: ${topic} message: ${message.value}`);
         } catch (err) {
             this.logger.error('Kafka producer send error');
             this.logger.error(err);
@@ -61,10 +61,10 @@ export class ProducerService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleInit() {
-        return await this.connect();
+        await this.connect();
     }
 
     async onModuleDestroy() {
-        return await this.producer.disconnect();
+        await this.disconnect();
     }
 }

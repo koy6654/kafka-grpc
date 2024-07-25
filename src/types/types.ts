@@ -1,4 +1,3 @@
-export type ProducerSendMailDto = {
-    userId: string;
-    value: string;
-};
+export interface AppBody {
+    message: string;
+}

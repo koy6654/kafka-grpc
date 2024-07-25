@@ -12,21 +12,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
             isGlobal: true,
             envFilePath: '.env',
         }),
-        ClientsModule.register([
-            {
-                name: KAFKA_CLIENT_NAME,
-                transport: Transport.KAFKA,
-                options: {
-                    client: {
-                        brokers: [process.env.BROKER_1, process.env.BROKER_2, process.env.BROKER_3],
-                    },
-                    producer: {},
-                    consumer: {
-                        groupId: KAFKA_CONSUMER_GROUP,
-                    },
-                },
-            },
-        ]),
         ProducerModule,
         ConsumerModule,
     ],

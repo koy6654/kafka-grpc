@@ -1,5 +1,3 @@
-import { KafkaOptions, Transport } from '@nestjs/microservices';
-
 export const KAFKA_CLIENT_NAME = 'kafka-producer';
 export const KAFKA_PRODUCER_CLIENT_ID = 'kafka-producer';
 export const KAFKA_CONSUMER_CLIENT_ID = 'kafka-consumer';

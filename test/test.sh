@@ -1,11 +1,21 @@
 #!/bin/bash
 
-# Go to docker bash
-# docker-compose exec -it Kafka01Service /bin/bash
+base_url="http://localhost:5000/app"
+header_content_type="Content-Type: application/json"
 
-# Topic 생성
-# ./kafka-topics.sh --create --topic tester --bootstrap-server Kafka00Service:9092,Kafka01Service:9092,Kafka02Service:9092 --partitions 3 --replication-factor 2
+send_request() {
+    local data="$1"
 
-# Console Producer, Consumer 테스트
-# ./kafka-console-producer.sh --topic tester --bootstrap-server Kafka00Service:9092,Kafka01Service:9092,Kafka02Service:9092
-# ./kafka-console-consumer.sh --topic tester --from-beginning --bootstrap-server Kafka00Service:9092,Kafka01Service:9092,Kafka02Service:9092
+    local response=$(curl --location "$base_url" \
+    --header "$header_content_type" \
+    --data "$data" \
+    -s)
+}
+
+send_request '{"message": "test_message_1"}'
+send_request '{"message": "test_message_2"}'
+send_request '{"message": "test_message_3"}'
+send_request '{"message": "test_message_4"}'
+send_request '{"message": "test_message_5"}'
+
+echo "test.sh done!"

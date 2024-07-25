@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/commo
 import { KafkaContext } from '@nestjs/microservices';
 import { Consumer, ConsumerSubscribeTopics, Kafka } from 'kafkajs';
 import { sleep } from '../common/utils';
-import { KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_GROUP } from '../common/constants';
+import { KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC } from '../common/constants';
 
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -24,14 +24,20 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     }
 
     async consume(topics: ConsumerSubscribeTopics) {
-        await this.consumer.connect();
         await this.consumer.subscribe(topics);
         await this.consumer.run({
             eachMessage: async ({ message, partition }) => {
-                this.logger.debug(`================= Processing message =================`);
-                this.logger.debug(message.value.toString());
-                this.logger.debug(`================= Processing partition =================`);
-                this.logger.debug(partition);
+                try {
+                    await sleep(2 * 1000); // Process some task
+
+                    this.logger.debug(
+                        `Kafka consumer task success,  partition: ${partition} message: ${message.value}`,
+                    );
+                } catch (err) {
+                    this.logger.error('Kafka consumer task err');
+                    this.logger.error(err);
+                    throw new err();
+                }
             },
         });
     }
@@ -39,8 +45,9 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
     async connect() {
         try {
             await this.consumer.connect();
+            this.logger.log('Kafka consumer connected');
         } catch (err) {
-            this.logger.error('Kafka consumer connected');
+            this.logger.error('Kafka consumer connect error');
             this.logger.error(err);
 
             await sleep(5000);
@@ -48,19 +55,21 @@ export class ConsumerService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    async processMessage(payload: any, conext: KafkaContext): Promise<boolean> {
-        // setTimeout(() => 2 * 1000);
+    async disconnect() {
+        try {
+            await this.consumer.disconnect();
+            this.logger.log('Kafka consumer disconnected');
+        } catch (err) {
+            this.logger.error('Kafka consumer disconnect error');
+            this.logger.error(err);
 
-        console.log('sendMail start');
-        const originalMessage = conext.getMessage();
-        console.log(payload);
-        console.log(originalMessage);
-
-        return true;
+            throw new err();
+        }
     }
 
     async onModuleInit() {
-        return await this.connect();
+        await this.connect();
+        await this.consume({ topics: [KAFKA_TOPIC] });
     }
 
     async onModuleDestroy() {
