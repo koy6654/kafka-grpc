@@ -1,8 +1,7 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Message, Producer } from 'kafkajs';
-import { KAFKA_PRODUCER_CLIENT_ID } from '../common/constants';
-import { sleep } from '../common/utils';
-import { ConfigService } from '@nestjs/config';
+import { KAFKA_PRODUCER_CLIENT_ID } from '../../common/constants';
+import { sleep } from '../../common/utils';
 
 @Injectable()
 export class ProducerService implements OnModuleInit, OnModuleDestroy {

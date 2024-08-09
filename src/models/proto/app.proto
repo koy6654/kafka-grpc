@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package kafka;
+
+service AppService {
+    rpc SendMessage (SendMessageRequestDto) returns (SendMessageResponseDto);
+}
+
+message SendMessageRequestDto {
+    string message = 1;
+}
+
+message SendMessageResponseDto {
+    SendMessageResponseStatus status = 1;
+}
+
+enum SendMessageResponseStatus {
+    SUCCESS = 0;
+    FAILED = 1;
+}

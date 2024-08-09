@@ -1,30 +1,27 @@
-import { Controller, Inject, Logger, Post, Req, Res } from '@nestjs/common';
-import { Kafka, Producer } from 'kafkajs';
-import { ProducerService } from './producer/producer.service';
-import { Request, Response } from 'express';
+import { Controller, Inject } from '@nestjs/common';
+import { ProducerService } from './modules/producer/producer.service';
 import { KAFKA_PRODUCER_SERVICE, KAFKA_TOPIC } from './common/constants';
-import { AppBody } from './types/types';
+import { GrpcMethod } from '@nestjs/microservices';
+import { SendMessageRequestDto, SendMessageResponseDto, SendMessageResponseStatus } from './models/types/app';
 
 @Controller()
 export class AppController {
-    private readonly kafka: Kafka;
-    private readonly producer: Producer;
-    private readonly logger: Logger;
-
     constructor(
         @Inject(KAFKA_PRODUCER_SERVICE)
         private readonly producerService: ProducerService,
     ) {}
 
-    @Post('/app')
-    async send(@Req() req: Request<any, any, AppBody>, @Res() res: Response) {
-        const bodyMessage = req.body.message;
+    @GrpcMethod('AppService', 'SendMessage')
+    async sendMessage(sendMessageDto: SendMessageRequestDto): Promise<SendMessageResponseDto> {
+        try {
+            const topic = KAFKA_TOPIC;
+            const message = { value: sendMessageDto.message };
 
-        const topic = KAFKA_TOPIC;
-        const message = { value: bodyMessage };
-        await this.producerService.sendMessage(topic, message);
+            await this.producerService.sendMessage(topic, message);
 
-        res.json({ data: true });
-        return;
+            return { status: SendMessageResponseStatus.SUCCESS };
+        } catch (err) {
+            return { status: SendMessageResponseStatus.FAILED };
+        }
     }
 }

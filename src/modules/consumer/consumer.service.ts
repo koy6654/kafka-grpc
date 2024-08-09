@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { KafkaContext } from '@nestjs/microservices';
 import { Consumer, ConsumerSubscribeTopics, Kafka } from 'kafkajs';
-import { sleep } from '../common/utils';
-import { KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC } from '../common/constants';
+import { sleep } from '../../common/utils';
+import { KAFKA_CONSUMER_CLIENT_ID, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC } from '../../common/constants';
 
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
