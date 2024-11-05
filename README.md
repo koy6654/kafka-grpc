@@ -1,6 +1,8 @@
-## Description
+## Skills
+NextJS, Kafka, gRPC, Docker
 
--   ### Use Kafka & GRPC
+## Description
+NextJS를 사용한 Kafka 모듈이며 내부에서 사용하기 위해 gRPC를 추가함
 
 ## Installation
 
@@ -21,9 +23,6 @@ $ npm run start:prod
 ## Test
 
 ```bash
-# reset dockers
-$ ./scripts/reset-docker.sh
-
-# test kafka
-$ ./scripts/test.sh
+# unit tests
+$ npm run test
 ```
